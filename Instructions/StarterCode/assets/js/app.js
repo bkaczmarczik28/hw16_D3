@@ -92,15 +92,30 @@ function renderCirclesX(chartGroup, newXScale, chosenXAxis) {
 // function to update abbreviations presented data based on selected x-axis from click event
 function renderStateAbbrX(textGroup, xLinearScale, chosenXAxis) {
 
-    console.log("Inside the renderStateAbbrX function");
-    console.log(chosenXAxis);
-    console.log(xLinearScale)
-
-    textGroup.selectAll()
+    // console.log("Inside the renderStateAbbrX function");
+    // console.log(chosenXAxis);
+    // console.log(xLinearScale)
+    //Don't use .selectAll, it won't work
+    textGroup
         .transition()
-        .duration(1)
+        .duration(1000)
         .attr("x", d => xLinearScale(d[chosenXAxis]));
     
+    return textGroup;        
+}
+
+
+// function to update abbreviations presented data based on selected x-axis from click event
+function renderStateAbbrY(textGroup, yLinearScale, chosenYAxis) {
+
+    // console.log("Inside the renderStateAbbrY function");
+    // console.log(chosenYAxis);
+    // console.log(yLinearScale)
+    textGroup
+        .transition()
+        .duration(1000)
+        .attr("y", d => yLinearScale(d[chosenYAxis]));
+
     return textGroup;        
 }
 
@@ -113,33 +128,38 @@ function renderCirclesY(circlesGroup, newYScale, chosenYAxis) {
 }
 
 // function used for updating circle group with tooltip
-function updateToolTip(chosenXAxis, chosenYAxis, circlesGroup){
+function updateToolTip(chosenXAxis, chosenYAxis, textGroup){
 
     // update labels for tooltip
 	    if (chosenXAxis === "age") {
-            var xlabel = "Median Age (years): ";
+            var xlabel = "Median Age: ";
+            var unitX = " years";
         }
         else if (chosenXAxis === "income") {
             var xlabel = "Median Household Income: $";
+            var unitX = "";
         }
         else if (chosenXAxis === "poverty") {
-            var xlabel = "Poverty (%): ";
+            var xlabel = "Poverty: ";
+            var unitX = "%";
         };
 
     // update labels for tooltip
     	if (chosenYAxis === "obese") {
-            var ylabel = "Obesity (%): ";
+            var ylabel = "Obesity: ";
+            var unitY = "%";
         }
         else if (chosenYAxis === "smokes") {
-            var ylabel = "Smoking (%): ";
+            var ylabel = "Smoking: ";
+            var unitY = "%";
         }
         else if (chosenYAxis === "healthcare") {
-            var ylabel = "Lacks Healthcare (%): ";
+            var ylabel = "Lacks Healthcare: ";
+            var unitY = "%";
         };
 
         // console.log(chosenYAxis)
         // console.log(chosenXAxis)
-
         // create updated tooltip
         // reference d3Style class d3 - tip
         var toolTip = d3.tip() 
@@ -147,16 +167,15 @@ function updateToolTip(chosenXAxis, chosenYAxis, circlesGroup){
             .offset([80, 60])
             .html(function(d) {
             return (`${d.state}
-                    <br>${xlabel}${d[chosenXAxis]}
-                    <br>${ylabel}${d[chosenYAxis]}`
+                    <br>${xlabel}${d[chosenXAxis]}${unitX}
+                    <br>${ylabel}${d[chosenYAxis]}${unitY}`
                     ); 
         });
-
         // console.log(circlesGroup)
         
-        circlesGroup.call(toolTip); //have to call the tooltip - chocolate cake recipe
+        textGroup.call(toolTip); //have to call the tooltip - chocolate cake recipe
         
-        circlesGroup.on("mouseover", function(data) {
+        textGroup.on("mouseover", function(data) {
             toolTip.show(data, this);
         })
         // onmouseout event
@@ -164,7 +183,7 @@ function updateToolTip(chosenXAxis, chosenYAxis, circlesGroup){
             toolTip.hide(data, this);
         });
         
-        return circlesGroup;
+        return textGroup;
 }
     
 
@@ -214,7 +233,7 @@ d3.csv("assets/data/data.csv").then(function(censusData, err)
         .append("circle")
         .attr("cx", d => xLinearScale(d.age))
         .attr("cy", d => yLinearScale(d.smokes))
-        .attr("r", "18")
+        .attr("r", "15")
         .attr("fill", "rgba(176,233,241)")
         .attr("opacity", "1");
 
@@ -291,7 +310,7 @@ d3.csv("assets/data/data.csv").then(function(censusData, err)
         .text("Lacks Healthcare (%)");
 
  // updateToolTip function above csv import
- var circlesGroup = updateToolTip(chosenXAxis, chosenYAxis, circlesGroup);
+ var textGroup = updateToolTip(chosenXAxis, chosenYAxis, textGroup);
 
  // x axis labels event listener
  labelsXGroup.selectAll("text")
@@ -320,7 +339,7 @@ d3.csv("assets/data/data.csv").then(function(censusData, err)
        textGroup = renderStateAbbrX(textGroup, xLinearScale, chosenXAxis);
 
         // update tooltip
-       circlesGroup = updateToolTip(chosenXAxis, chosenYAxis, circlesGroup);
+        textGroup = updateToolTip(chosenXAxis, chosenYAxis, textGroup);
 
        // changes classes to change bold text
        if (chosenXAxis === "age") {
@@ -383,6 +402,9 @@ labelsYGroup.selectAll("text")
 
         // updates circles with new x values
         circlesGroup = renderCirclesY(circlesGroup, yLinearScale, chosenYAxis);
+
+        //update state abbreviations with new x values
+       textGroup = renderStateAbbrY(textGroup, yLinearScale, chosenYAxis);
 
         // // updates tooltips with new x-axis
         circlesGroup = updateToolTip(chosenXAxis, chosenYAxis, circlesGroup);
